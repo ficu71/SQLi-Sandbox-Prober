@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLi-Sandbox-Prober - Kompletny Pakiet z README</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- 
+        Cel: Połączenie działającej aplikacji demonstracyjnej z gotowym do skopiowania plikiem README.md w jednym, spójnym dokumencie HTML.
+        Struktura:
+        1. Nagłówek i Nawigacja: Prosta nawigacja do kluczowych sekcji: Demo i README.
+        2. Sekcja Demo: Interaktywna symulacja aplikacji, która pokazuje, jak działa skanowanie i analiza z Gemini AI. Jest to wizualna i funkcjonalna część dokumentu.
+        3. Sekcja README: Specjalnie sformatowana sekcja, która wygląda jak plik na GitHubie. Użycie <pre> i <code> zapewni, że formatowanie Markdown zostanie zachowane podczas kopiowania, co jest kluczowe dla użytkownika.
+        4. Logika JavaScript: Cały kod JS jest umieszczony na końcu dokumentu. Obejmuje symulację działania aplikacji, obsługę modala oraz, co najważniejsze, funkcję do komunikacji z Gemini API w celu analizy podatności.
+        5. Stylizacja: Użycie Tailwind CSS do stworzenia nowoczesnego, czystego i responsywnego interfejsu. Paleta kolorów (chłodne szarości i niebieski akcent) jest zachowana dla profesjonalnego, technicznego wyglądu.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+        .gemini-modal-content {
+            animation: slide-up 0.3s ease-out;
+        }
+        @keyframes slide-up {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .gemini-loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Nawigacja -->
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-slate-900">SQLi-Sandbox-Prober <span class="text-blue-600 text-xs font-medium align-top">✨AI</span></h1>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#demo" class="text-sm font-medium text-slate-600 hover:text-blue-600">Demo Aplikacji</a>
+                    <a href="#readme" class="text-sm font-medium text-slate-600 hover:text-blue-600">Gotowiec na GitHub</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Sekcja Hero -->
+        <section class="py-20 text-center bg-white">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900">
+                    Wszystko w Jednym Miejscu
+                </h2>
+                <p class="mt-6 max-w-2xl mx-auto text-lg text-slate-600">
+                    Poniżej znajdziesz interaktywne demo aplikacji oraz gotowy plik `README.md` do skopiowania i wklejenia prosto na Twój profil GitHub.
+                </p>
+                <div class="mt-8 flex justify-center gap-4">
+                    <a href="#demo" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                        Testuj Demo
+                    </a>
+                    <a href="#readme" class="inline-flex items-center justify-center px-6 py-3 border border-slate-300 text-base font-medium rounded-md shadow-sm text-slate-700 bg-white hover:bg-slate-50">
+                        Kopiuj README
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sekcja Demo -->
+        <section id="demo" class="py-20 sm:py-24">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h3 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Interaktywne Demo</h3>
+                    <p class="mt-4 text-lg text-slate-600">Kliknij "START SKAN", a następnie "✨ Analizuj" przy wykrytej podatności, żeby zobaczyć magię AI.</p>
+                </div>
+                <div class="mt-16 max-w-6xl mx-auto bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
+                    <div class="flex flex-col lg:flex-row">
+                        <!-- Panel lewy (konfiguracja) -->
+                        <div class="w-full lg:w-1/3 p-6 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-200">
+                            <h4 class="text-lg font-bold text-slate-800">Panel Sterowania</h4>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label for="demo-url" class="block text-sm font-medium text-slate-700">Cel URL</label>
+                                    <input type="text" id="demo-url" value="http://testphp.vulnweb.com" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm" disabled>
+                                </div>
+                                <button id="demo-start-btn" class="w-full mt-6 px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
+                                    🚀 START SKAN
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Panel prawy (wyniki) -->
+                        <div class="w-full lg:w-2/3 p-6">
+                            <h4 class="text-lg font-bold text-slate-800">Logi na Żywo</h4>
+                            <div id="demo-log" class="mt-2 h-64 bg-slate-900 text-white font-mono text-xs rounded-lg p-4 overflow-y-auto">
+                                <p class="text-slate-400">&gt; Czekam na rozpoczęcie skanu...</p>
+                            </div>
+                             <div class="mt-6">
+                                <h4 class="text-lg font-bold text-slate-800">Wykryte Podatności</h4>
+                                <div class="mt-2 h-40 overflow-y-auto border border-slate-200 rounded-lg">
+                                    <table class="min-w-full divide-y divide-slate-200">
+                                        <thead class="bg-slate-50">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Pole</th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Sygnał</th>
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Akcja</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="demo-results-table" class="bg-white divide-y divide-slate-200">
+                                            <!-- Wyniki będą dodawane dynamicznie -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sekcja README -->
+        <section id="readme" class="py-20 sm:py-24 bg-white border-t">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h3 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Gotowiec na GitHub (`README.md`)</h3>
+                    <p class="mt-4 text-lg text-slate-600">Po prostu skopiuj całą poniższą treść i wklej do pliku `README.md` w swoim repozytorium.</p>
+                </div>
+                <div class="mt-12 bg-slate-900 rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4 sm:p-6 lg:p-8">
+<pre class="text-white text-sm font-mono whitespace-pre-wrap"><code># SQLi-Sandbox-Prober v9.0 (Gemini Build)
+
+Siemanko! To jest **SQLi-Sandbox-Prober**, czyli Twój osobisty ochroniarz do apek webowych, teraz na sterydach z AI od Google.
+
+Koniec z suchymi raportami. To narzędzie nie tylko znajdzie dziurę w płocie (podatność SQL Injection), ale od razu zadzwoni do kumpla-eksperta (Gemini AI), który ci powie:
+* **Co się stało?** (Wyjaśni problem jak kumpel kumplowi)
+* **Jak bardzo to przypał?** (Oceni realne ryzyko)
+* **Jak to załatać?** (Da ci gotowy kawałek kodu do wklejenia)
+
+![Zrzut ekranu przedstawiający interfejs aplikacji SQLi-Sandbox-Prober z otwartym oknem analizy Gemini AI](https://placehold.co/800x450/1e293b/f8fafc?text=Interfejs+SQLi-Sandbox-Prober+w+Akcji)
+
+---
+
+## 🔥 Kluczowe Funkcje
+
+* **✨ Analiza z Gemini AI:** To jest game-changer. Znajdujesz podatność, klikasz i dostajesz pełną analizę z wyjaśnieniem, oceną ryzyka i gotową łatką na kod.
+* **🖥️ Pełne GUI:** Zapomnij o konsoli. Wszystko wyklikasz w prostym interfejsie graficznym.
+* **⚡ Skanowanie Wielowątkowe:** Leci na kilku frontach naraz, więc oszczędzasz masę czasu.
+* **🕷️ Sprytny Crawler:** Sam łazi po stronie i szuka nowych miejsc do przetestowania.
+* **🎭 Silnik Mutacji WAF:** Potrafi tak pokręcić zapytania, że proste firewalle głupieją.
+* **📄 Generator Raportów PDF:** Po robocie generujesz elegancki raport dla szefa albo klienta.
+
+---
+
+## 🚀 Jak to odpalić? (Szybki start)
+
+Wbijasz w terminal i lecisz z tematem:
+
+**1. Sklonuj repo i wejdź do folderu:**
+` ` `bash
+git clone https://github.com/TWOJA-NAZWA/SQLi-Sandbox-Prober
+cd SQLi-Sandbox-Prober
+` ` `
+
+**2. Zainstaluj potrzebne paczki:**
+` ` `bash
+pip install -r requirements.txt
+` ` `
+
+**3. Odpal interfejs graficzny:**
+` ` `bash
+python gui_launcher.py
+` ` `
+
+I gotowe. Resztę wyklikasz w apce.
+
+---
+
+## ⚠️ JEDNA, WAŻNA ZASADA
+
+To narzędzie ma pomagać, a nie psuć. Używaj go **TYLKO I WYŁĄCZNIE** do testowania systemów, na które masz **PISEMNĄ ZGODĘ** właściciela.
+
+Nie bądź dzbanem. Nie atakuj stron, które nie są twoje. Celem jest budowanie bezpieczniejszego internetu, a nie robienie komuś krzywdy.
+
+**Używasz na własną odpowiedzialność.**
+</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-900 text-white">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-base text-slate-400">&copy; 2025 Wersja demonstracyjna. Wszelkie prawa zastrzeżone.</p>
+        </div>
+    </footer>
+
+    <!-- Gemini Analysis Modal -->
+    <div id="gemini-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+        <div class="gemini-modal-content bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-slate-200">
+                <h3 class="text-lg font-bold text-slate-800">✨ Analiza Podatności z Gemini AI</h3>
+                <button id="close-modal-btn" class="text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div id="modal-body" class="p-6 overflow-y-auto">
+                <!-- Content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Gemini API Logic ---
+            const geminiModal = document.getElementById('gemini-modal');
+            const modalBody = document.getElementById('modal-body');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            async function callGeminiAPI(prompt) {
+                const apiKey = ""; // Klucz API nie jest potrzebny w tym środowisku
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }]
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        throw new Error(`Błąd API: ${response.status} ${response.statusText}. Treść: ${errorBody}`);
+                    }
+
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0 && result.candidates[0].content.parts.length > 0) {
+                        return result.candidates[0].content.parts[0].text;
+                    }
+                    return "Nie otrzymano poprawnej odpowiedzi od AI. Sprawdź konsolę, aby uzyskać więcej informacji.";
+                } catch (error) {
+                    console.error("Błąd wywołania Gemini API:", error);
+                    return `Wystąpił błąd podczas komunikacji z AI: ${error.message}. Sprawdź, czy nie blokujesz zapytań (np. przez AdBlock) i spróbuj ponownie.`;
+                }
+            }
+
+            function showModal() {
+                geminiModal.classList.remove('hidden');
+            }
+
+            function hideModal() {
+                geminiModal.classList.add('hidden');
+            }
+            
+            closeModalBtn.addEventListener('click', hideModal);
+            geminiModal.addEventListener('click', (e) => {
+                if (e.target === geminiModal) {
+                    hideModal();
+                }
+            });
+
+            function parseMarkdownToHtml(markdown) {
+                // Prosty parser, który zamienia podstawowe znaczniki Markdown na HTML
+                return markdown
+                    .replace(/### (.*)/g, '<h3 class="text-md font-bold text-slate-800 mt-4 mb-2">$1</h3>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/```(python|bash)\n([\s\S]*?)```/g, '<pre class="bg-slate-900 text-white p-4 rounded-lg mt-2 text-sm overflow-x-auto"><code>$2</code></pre>')
+                    .replace(/\n/g, '<br>');
+            }
+
+            async function analyzeVulnerability(vulnData) {
+                showModal();
+                modalBody.innerHTML = '<div class="flex justify-center items-center h-48"><div class="gemini-loader"></div></div>';
+                
+                const prompt = `
+                    Jesteś ekspertem ds. bezpieczeństwa aplikacji webowych. Przeanalizuj następującą podatność SQL Injection i dostarcz zwięzłej, praktycznej analizy w języku polskim.
+
+                    **Szczegóły Podatności:**
+                    - **URL:** ${vulnData.url}
+                    - **Podatne Pole:** ${vulnData.field}
+                    - **Użyty Input:** ${vulnData.input}
+                    - **Sygnał Błędu SQL:** ${vulnData.signal}
+
+                    **Zadanie:**
+                    Wygeneruj odpowiedź w formacie Markdown, zawierającą DOKŁADNIE trzy sekcje:
+
+                    ### Wyjaśnienie Podatności
+                    (Opisz prostym językiem, na czym polega ta konkretna podatność i dlaczego input '${vulnData.input}' spowodował błąd.)
+
+                    ### Potencjalny Wpływ Biznesowy
+                    (Opisz 2-3 konkretne, najgorsze scenariusze, co atakujący mógłby osiągnąć, wykorzystując tę lukę, np. kradzież danych klientów.)
+
+                    ### Przykład Naprawy (Python/Flask)
+                    (Napisz krótki, kompletny fragment kodu w Pythonie z użyciem biblioteki, np. mysql-connector-python, pokazujący, jak poprawnie wykonać zapytanie do bazy danych dla tego przypadku, używając zapytań parametryzowanych. Kod musi być gotowy do skopiowania i użycia.)
+                `;
+
+                const analysis = await callGeminiAPI(prompt);
+                modalBody.innerHTML = parseMarkdownToHtml(analysis);
+            }
+
+            // --- Logika symulacji dema ---
+            const startBtn = document.getElementById('demo-start-btn');
+            const logOutput = document.getElementById('demo-log');
+            const resultsTableBody = document.getElementById('demo-results-table');
+            
+            const logMessages = [
+                { msg: "[*] Rozpoczynam crawling do głębokości 1...", delay: 500 },
+                { msg: "[+] Znaleziono 3 URLi do testowania.", delay: 1000 },
+                { msg: "  -> [Wątek 1] Analiza: http://testphp.vulnweb.com/login.php", delay: 500 },
+                { msg: "  -> [Wątek 2] Analiza: http://testphp.vulnweb.com/guestbook.php", delay: 200 },
+                { msg: "  [!] [Wątek 1] PODATNOŚĆ: Pole 'uname' -> Sygnał: 'you have an error in your sql syntax'", delay: 1500, vuln: { url: 'http://testphp.vulnweb.com/login.php', field: 'uname', input: "'", signal: 'error in sql syntax' } },
+                { msg: "  [!] [Wątek 2] PODATNOŚĆ: Pole 'comment' -> Sygnał: 'unclosed quotation mark'", delay: 1000, vuln: { url: 'http://testphp.vulnweb.com/guestbook.php', field: 'comment', input: "test'", signal: 'unclosed quotation mark' } },
+                { msg: "[+] Skanowanie zakończone.", delay: 800 }
+            ];
+
+            startBtn.addEventListener('click', () => {
+                startBtn.disabled = true;
+                startBtn.textContent = 'Skanowanie...';
+                logOutput.innerHTML = '';
+                resultsTableBody.innerHTML = '';
+                
+                let cumulativeDelay = 0;
+
+                logMessages.forEach(item => {
+                    cumulativeDelay += item.delay;
+                    setTimeout(() => {
+                        const p = document.createElement('p');
+                        p.textContent = `> ${item.msg}`;
+                        if (item.msg.includes('[!]')) p.classList.add('text-red-400');
+                        else if (item.msg.includes('[+]')) p.classList.add('text-green-400');
+                        else p.classList.add('text-slate-400');
+                        logOutput.appendChild(p);
+                        logOutput.scrollTop = logOutput.scrollHeight;
+
+                        if (item.vuln) {
+                            const row = resultsTableBody.insertRow();
+                            row.className = "hover:bg-slate-50";
+                            const cell1 = row.insertCell(0);
+                            const cell2 = row.insertCell(1);
+                            const cell3 = row.insertCell(2);
+                            cell1.className = "px-4 py-3 text-sm text-slate-700";
+                            cell2.className = "px-4 py-3 text-sm text-slate-500";
+                            cell3.className = "px-4 py-3 text-sm";
+                            cell1.textContent = item.vuln.field;
+                            cell2.textContent = item.vuln.signal;
+                            const analyzeBtn = document.createElement('button');
+                            analyzeBtn.innerHTML = '✨ Analizuj';
+                            analyzeBtn.className = 'px-2 py-1 text-xs font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-all';
+                            analyzeBtn.onclick = () => analyzeVulnerability(item.vuln);
+                            cell3.appendChild(analyzeBtn);
+                        }
+                    }, cumulativeDelay);
+                });
+
+                setTimeout(() => {
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '🚀 Uruchom Ponownie';
+                }, cumulativeDelay + 500);
+            });
+        });
+    </script>
+</body>
+</html>
